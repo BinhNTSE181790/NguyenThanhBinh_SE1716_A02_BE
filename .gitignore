@@ -1,0 +1,89 @@
+# This file is based on the standard Visual Studio .gitignore template, 
+# adapted for a C# API project.
+
+## **Build Results**
+# Exclude compiled output and temporary build files
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/[Tt]emp/
+**/bin.bak/
+
+# Project-specific intermediate files
+**/*.user
+**/*.suo
+**/*.ncb
+**/*.opensdf
+**/*.sdf
+**/*.cache
+**/*.psess
+**/*.vsp
+
+## **Visual Studio Files**
+# User-specific settings and solution files
+*.vs/
+*.[Ss]olution.v*
+*.[Pp]roject.v*
+*.log
+*.plg
+*.bak
+*.trc
+*.rsp
+
+# IntelliSense and ReSharper
+*.VC.db
+*.bsc
+*.sbr
+*.res
+*.pch
+*.ipch
+*.aps
+*.res
+*.suo
+
+# NuGet cache and packages
+**/packages/
+# Exclude the project's 'packages' folder but keep 'nuget.config'
+!**/packages.config
+# Ignore NuGet generated folder in the solution root for restoration
+.nuget/
+
+## **Test Files**
+# Results from running tests
+**/TestResults/
+**/*.trx
+
+## **Rider/JetBrains IDE Files**
+# Rider/ReSharper-specific files
+.idea/
+*.sln.DotSettings
+*.sln.DotSettings.user
+
+## **macOS Files**
+# Files created by macOS
+.DS_Store
+
+## **Docker Files**
+# Exclude generated output from Docker builds (if applicable)
+**/docker-compose.vs.debug.g.yml
+**/docker-compose.vs.release.g.yml
+**/docker-compose.override.yml
+# Include the standard override file if you want to commit it (remove the '!' if you don't)
+!**/docker-compose.override.yml
+
+## **Database Files**
+# Local database files (e.g., SQLite, LocalDB)
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+## **Dependency/Lock Files**
+# Exclude files that can be regenerated, though often `project.assets.json` is useful for CI
+**/project.assets.json
+**/project.nuget.cache
+
+## **Deployment Files**
+# Web deploy/publish files
+*.publish.xml
