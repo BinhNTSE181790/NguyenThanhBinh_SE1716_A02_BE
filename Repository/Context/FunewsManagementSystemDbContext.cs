@@ -4,7 +4,7 @@ using Repository.Entities;
 using System;
 using System.Collections.Generic;
 
-namespace Repository.DAOs;
+namespace Repository.Context;
 
 public partial class FunewsManagementSystemDbContext : DbContext
 {
@@ -25,18 +25,6 @@ public partial class FunewsManagementSystemDbContext : DbContext
 
     public virtual DbSet<Tag> Tags { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer(GetConnectionString());
-
-    private string GetConnectionString()
-    {
-        var config = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())   // đường dẫn gốc
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-        return config.GetConnectionString("DefaultConnection");
-    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Category>(entity =>
