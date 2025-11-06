@@ -22,7 +22,7 @@ namespace FUNewsManagementSystem.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<APIResponse<string>>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<APIResponse<LoginResponse>>> Login([FromBody] LoginRequest request)
         {
             try
             {
@@ -37,7 +37,12 @@ namespace FUNewsManagementSystem.Controllers
                     account.Data.AccountEmail,
                     account.Data.AccountRole
                 );
-                return Ok(APIResponse<string>.Ok(token, "Login successfull"));
+                LoginResponse response = new LoginResponse
+                {
+                    Token = token,
+                    Role = account.Data.AccountRole
+                };
+                return Ok(APIResponse<LoginResponse>.Ok(response, "Login successfull"));
             }
             catch (Exception)
             {
