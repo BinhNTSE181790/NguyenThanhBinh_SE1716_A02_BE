@@ -27,7 +27,7 @@ namespace FUNewsManagementSystem.Controllers
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(request.Email, request.Password);
-                if (account == null)
+                if (account.Data == null)
                 {
                     return NotFound(APIResponse<string>.Fail("Account not exist", "404"));
                 }
