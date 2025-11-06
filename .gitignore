@@ -2,6 +2,10 @@
 # adapted for a C# API project.
 
 ## **Build Results**
+# Ignore obj folders in all projects
+obj/
+**/obj/
+
 # Exclude compiled output and temporary build files
 **/[Bb]in/
 **/[Oo]bj/
