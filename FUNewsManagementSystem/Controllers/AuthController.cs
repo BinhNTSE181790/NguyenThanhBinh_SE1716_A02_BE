@@ -39,8 +39,11 @@ namespace FUNewsManagementSystem.Controllers
                 );
                 LoginResponse response = new LoginResponse
                 {
+                    UserId = account.Data.AccountId,
+                    UserName = account.Data.AccountName,
+                    UserEmail = account.Data.AccountEmail,
+                    Role = account.Data.AccountRole,
                     Token = token,
-                    Role = account.Data.AccountRole
                 };
                 return Ok(APIResponse<LoginResponse>.Ok(response, "Login successfull"));
             }

@@ -22,6 +22,8 @@ namespace Service.Services
             // Kiểm tra admin account từ appsettings.json
             var adminEmail = _configuration["AdminAccount:Email"];
             var adminPassword = _configuration["AdminAccount:Password"];
+            var adminName = _configuration["AdminAccount:Name"];
+            var adminRole = int.Parse(_configuration["AdminAccount:Role"] ?? "0");
 
             if (email == adminEmail && password == adminPassword)
             {
@@ -29,9 +31,9 @@ namespace Service.Services
                 var adminAccount = new SystemAccount
                 {
                     AccountId = 0,
-                    AccountName = "Administrator",
+                    AccountName = adminName,
                     AccountEmail = adminEmail,
-                    AccountRole = 3,
+                    AccountRole = adminRole,
                 };
                 return APIResponse<SystemAccount>.Ok(adminAccount, "Admin account found", "200");
             }
