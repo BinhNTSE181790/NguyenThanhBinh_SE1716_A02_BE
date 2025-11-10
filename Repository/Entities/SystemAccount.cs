@@ -15,6 +15,8 @@ public partial class SystemAccount
 
     public string AccountPassword { get; set; } = null!;
 
+    public bool IsActive { get; set; } = true;
+
     public virtual ICollection<NewsArticle> NewsArticleCreatedBies { get; set; } = new List<NewsArticle>();
 
     public virtual ICollection<NewsArticle> NewsArticleUpdatedBies { get; set; } = new List<NewsArticle>();

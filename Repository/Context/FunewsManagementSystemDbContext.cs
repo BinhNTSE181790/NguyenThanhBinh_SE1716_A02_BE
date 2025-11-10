@@ -111,6 +111,7 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.AccountPassword)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Tag>(entity =>

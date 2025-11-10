@@ -50,7 +50,7 @@ namespace Service.Services
         public async Task<APIResponse<ProfileResponse>> GetAccountByIdAsync(int accountId)
         {
             var account = await uow.AccountRepo.GetByIdAsync(accountId);
-            if (account == null)
+            if (account == null || !account.IsActive)
             {
                 return APIResponse<ProfileResponse>.Fail("Account not found", "404");
             }
@@ -71,7 +71,9 @@ namespace Service.Services
         {
             try
             {
-                var accounts = await uow.AccountRepo.GetAllAsync();
+                var allAccounts = await uow.AccountRepo.GetAllAsync();
+                // Chỉ lấy các account còn active
+                var accounts = allAccounts.Where(a => a.IsActive).ToList();
                 var accountResponses = new List<AccountResponse>();
 
                 foreach (var account in accounts)
@@ -100,7 +102,7 @@ namespace Service.Services
             try
             {
                 var account = await uow.AccountRepo.GetByIdAsync(accountId);
-                if (account == null)
+                if (account == null || !account.IsActive)
                 {
                     return APIResponse<AccountResponse>.Fail("Account not found", "404");
                 }
@@ -201,27 +203,24 @@ namespace Service.Services
         {
             try
             {
-                // Lấy account kèm theo news articles để kiểm tra
-                var account = await uow.AccountRepo.GetAccountWithNewsArticlesAsync(accountId);
+                // Lấy account để soft delete
+                var account = await uow.AccountRepo.GetByIdAsync(accountId);
                 if (account == null)
                 {
                     return APIResponse<string>.Fail("Account not found", "404");
                 }
 
-                // Kiểm tra xem account có tạo news article nào không
-                if (account.NewsArticleCreatedBies != null && account.NewsArticleCreatedBies.Any())
+                // Kiểm tra nếu account đã bị xóa (soft deleted)
+                if (!account.IsActive)
                 {
-                    return APIResponse<string>.Fail("Cannot delete account that has created news articles", "400");
+                    return APIResponse<string>.Fail("Account is already deleted", "400");
                 }
 
-                // Kiểm tra xem account có update news article nào không
-                if (account.NewsArticleUpdatedBies != null && account.NewsArticleUpdatedBies.Any())
-                {
-                    return APIResponse<string>.Fail("Cannot delete account that has updated news articles", "400");
-                }
-
-                var result = await uow.AccountRepo.RemoveAsync(account);
-                if (!result)
+                // Soft delete: chuyển IsActive thành false
+                account.IsActive = false;
+                var result = await uow.AccountRepo.UpdateAsync(account);
+                
+                if (result <= 0)
                 {
                     return APIResponse<string>.Fail("Failed to delete account", "500");
                 }
