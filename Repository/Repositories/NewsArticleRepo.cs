@@ -31,6 +31,13 @@ namespace Repository.Repositories
                 .ToListAsync();
         }
 
+        public async Task<int> CountNewsByCreatorIdAsync(int creatorId)
+        {
+            return await _dbSet
+                .Where(n => n.CreatedById == creatorId)
+                .CountAsync();
+        }
+
         public override async Task<int> CreateAsync(NewsArticle entity)
         {
             if (entity == null)

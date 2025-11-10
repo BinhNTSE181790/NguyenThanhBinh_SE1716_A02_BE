@@ -4,10 +4,10 @@ namespace Repository.DTOs
     {
         public class ProfileResponse
         {
-            public int Id { get; set; }
-            public string Email { get; set; } = string.Empty;
-            public string Name { get; set; } = string.Empty;
-            public int Role { get; set; }
+            public int AccountId { get; set; }
+            public string AccountEmail { get; set; } = string.Empty;
+            public string AccountName { get; set; } = string.Empty;
+            public int AccountRole { get; set; }
         }
 
         public class AccountResponse
@@ -16,6 +16,7 @@ namespace Repository.DTOs
             public string AccountName { get; set; } = string.Empty;
             public string AccountEmail { get; set; } = string.Empty;
             public int AccountRole { get; set; }
+            public int NewsCount { get; set; }
         }
 
         public class CreateAccountRequest

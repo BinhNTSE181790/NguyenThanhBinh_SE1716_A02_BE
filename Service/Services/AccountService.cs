@@ -56,10 +56,10 @@ namespace Service.Services
             }
             ProfileResponse profile = new ProfileResponse
             {
-                Id = account.AccountId,
-                Name = account.AccountName,
-                Email = account.AccountEmail,
-                Role = account.AccountRole
+                AccountId = account.AccountId,
+                AccountName = account.AccountName,
+                AccountEmail = account.AccountEmail,
+                AccountRole = account.AccountRole
             };
             return APIResponse<ProfileResponse>.Ok(profile, "Account found", "200");
         }
@@ -72,13 +72,20 @@ namespace Service.Services
             try
             {
                 var accounts = await uow.AccountRepo.GetAllAsync();
-                var accountResponses = accounts.Select(a => new AccountResponse
+                var accountResponses = new List<AccountResponse>();
+
+                foreach (var account in accounts)
                 {
-                    AccountId = a.AccountId,
-                    AccountName = a.AccountName,
-                    AccountEmail = a.AccountEmail,
-                    AccountRole = a.AccountRole
-                }).ToList();
+                    var newsCount = await uow.NewsArticleRepo.CountNewsByCreatorIdAsync(account.AccountId);
+                    accountResponses.Add(new AccountResponse
+                    {
+                        AccountId = account.AccountId,
+                        AccountName = account.AccountName,
+                        AccountEmail = account.AccountEmail,
+                        AccountRole = account.AccountRole,
+                        NewsCount = newsCount
+                    });
+                }
 
                 return APIResponse<List<AccountResponse>>.Ok(accountResponses, "Accounts retrieved successfully", "200");
             }
