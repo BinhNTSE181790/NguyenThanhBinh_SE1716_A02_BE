@@ -29,7 +29,7 @@ namespace FUNewsManagementSystem.Controllers
                 var account = await _accountService.GetAccountByEmailAsync(request.Email, request.Password);
                 if (account.Data == null)
                 {
-                    return NotFound(APIResponse<string>.Fail("Account not exist", "404"));
+                    return Unauthorized(APIResponse<string>.Fail("Email or password is incorrect", "401"));
                 }
                 string token = _jwtService.GenerateToken(
                     account.Data.AccountId,
@@ -45,11 +45,11 @@ namespace FUNewsManagementSystem.Controllers
                     Role = account.Data.AccountRole,
                     Token = token,
                 };
-                return Ok(APIResponse<LoginResponse>.Ok(response, "Login successfull"));
+                return Ok(APIResponse<LoginResponse>.Ok(response, "Login successfully"));
             }
             catch (Exception)
             {
-                return StatusCode(500, APIResponse<string>.Fail("System fail", "500"));
+                return StatusCode(500, APIResponse<string>.Fail("System error", "500"));
             }
         }
 
