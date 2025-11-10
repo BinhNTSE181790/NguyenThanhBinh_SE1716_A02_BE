@@ -48,5 +48,27 @@ namespace Repository.DTOs
             public int NewsStatus { get; set; }
             public List<int>? TagIds { get; set; }
         }
+
+        public class NewsStatisticsRequest
+        {
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+        }
+
+        public class NewsStatisticsResponse
+        {
+            public DateTime Date { get; set; }
+            public int TotalNews { get; set; }
+            public int PublishedNews { get; set; }
+            public int DraftNews { get; set; }
+            public List<CategoryStatistics> CategoryBreakdown { get; set; } = new();
+        }
+
+        public class CategoryStatistics
+        {
+            public int CategoryId { get; set; }
+            public string CategoryName { get; set; } = string.Empty;
+            public int Count { get; set; }
+        }
     }
 }

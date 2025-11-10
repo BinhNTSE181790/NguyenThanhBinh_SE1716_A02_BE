@@ -181,5 +181,20 @@ namespace FUNewsManagementSystem.Controllers
                 return StatusCode(500, APIResponse<string>.Fail($"System error: {ex.Message}", "500"));
             }
         }
+
+        [Authorize(Roles = "0")] // Admin only
+        [HttpPost("statistics")]
+        public async Task<ActionResult<APIResponse<List<NewsStatisticsResponse>>>> GetNewsStatistics([FromBody] NewsStatisticsRequest request)
+        {
+            try
+            {
+                var result = await _newsArticleService.GetNewsStatisticsAsync(request.StartDate, request.EndDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIResponse<List<NewsStatisticsResponse>>.Fail($"System error: {ex.Message}", "500"));
+            }
+        }
     }
 }

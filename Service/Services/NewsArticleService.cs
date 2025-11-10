@@ -386,5 +386,47 @@ namespace Service.Services
                 return APIResponse<string>.Fail($"Error deleting news article: {ex.Message}", "500");
             }
         }
+
+        public async Task<APIResponse<List<NewsStatisticsResponse>>> GetNewsStatisticsAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
+                
+                // Filter by date range and IsActive
+                var filteredNews = newsArticles
+                    .Where(n => n.IsActive && n.CreatedDate.Date >= startDate.Date && n.CreatedDate.Date <= endDate.Date)
+                    .ToList();
+
+                // Group by date and calculate statistics
+                var statistics = filteredNews
+                    .GroupBy(n => n.CreatedDate.Date)
+                    .Select(g => new NewsStatisticsResponse
+                    {
+                        Date = g.Key,
+                        TotalNews = g.Count(),
+                        PublishedNews = g.Count(n => n.NewsStatus == 1),
+                        DraftNews = g.Count(n => n.NewsStatus == 0),
+                        CategoryBreakdown = g
+                            .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
+                            .Select(cg => new CategoryStatistics
+                            {
+                                CategoryId = cg.Key.CategoryId,
+                                CategoryName = cg.Key.CategoryName,
+                                Count = cg.Count()
+                            })
+                            .OrderByDescending(cs => cs.Count)
+                            .ToList()
+                    })
+                    .OrderByDescending(s => s.Date)
+                    .ToList();
+
+                return APIResponse<List<NewsStatisticsResponse>>.Ok(statistics, "Statistics retrieved successfully", "200");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<List<NewsStatisticsResponse>>.Fail($"Error retrieving statistics: {ex.Message}", "500");
+            }
+        }
     }
 }
