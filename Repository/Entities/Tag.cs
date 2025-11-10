@@ -11,5 +11,7 @@ public partial class Tag
 
     public string? Note { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public virtual ICollection<NewsArticle> NewsArticles { get; set; } = new List<NewsArticle>();
 }

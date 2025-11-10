@@ -27,6 +27,8 @@ public partial class NewsArticle
 
     public DateTime? ModifiedDate { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual SystemAccount CreatedBy { get; set; } = null!;
