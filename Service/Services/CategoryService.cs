@@ -19,7 +19,9 @@ namespace Service.Services
         {
             try
             {
-                var categories = await _uow.CategoryRepo.GetAllAsync();
+                var allCategories = await _uow.CategoryRepo.GetAllAsync();
+                // Chỉ lấy các category còn active
+                var categories = allCategories.Where(c => c.IsActive).ToList();
                 var categoryResponses = categories.Select(c => new CategoryResponse
                 {
                     CategoryId = c.CategoryId,
@@ -43,7 +45,7 @@ namespace Service.Services
             try
             {
                 var category = await _uow.CategoryRepo.GetCategoryWithParentAsync(categoryId);
-                if (category == null)
+                if (category == null || !category.IsActive)
                 {
                     return APIResponse<CategoryResponse>.Fail("Category not found", "404");
                 }
@@ -161,26 +163,17 @@ namespace Service.Services
         {
             try
             {
-                var category = await _uow.CategoryRepo.GetCategoryWithNewsArticlesAsync(categoryId);
-                if (category == null)
+                var category = await _uow.CategoryRepo.GetByIdAsync(categoryId);
+                if (category == null || !category.IsActive)
                 {
                     return APIResponse<string>.Fail("Category not found", "404");
                 }
 
-                // Kiểm tra xem category có news articles nào không
-                if (category.NewsArticles != null && category.NewsArticles.Any())
-                {
-                    return APIResponse<string>.Fail("Cannot delete category that has news articles", "400");
-                }
-
-                // Kiểm tra xem category có sub-categories nào không
-                if (category.InverseParentCategory != null && category.InverseParentCategory.Any())
-                {
-                    return APIResponse<string>.Fail("Cannot delete category that has sub-categories", "400");
-                }
-
-                var result = await _uow.CategoryRepo.RemoveAsync(category);
-                if (!result)
+                // Soft delete: chuyển IsActive thành false
+                category.IsActive = false;
+                var result = await _uow.CategoryRepo.UpdateAsync(category);
+                
+                if (result <= 0)
                 {
                     return APIResponse<string>.Fail("Failed to delete category", "500");
                 }

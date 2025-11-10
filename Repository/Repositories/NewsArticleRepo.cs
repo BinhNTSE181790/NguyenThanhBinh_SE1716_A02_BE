@@ -27,6 +27,7 @@ namespace Repository.Repositories
                 .Include(n => n.CreatedBy)
                 .Include(n => n.UpdatedBy)
                 .Include(n => n.Tags)
+                .OrderByDescending(n => n.NewsArticleId)
                 .AsNoTracking()
                 .ToListAsync();
         }

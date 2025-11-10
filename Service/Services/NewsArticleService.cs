@@ -20,8 +20,8 @@ namespace Service.Services
             try
             {
                 var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
-                // Chỉ lấy news có status = 1 (Published/Active)
-                var activeNewsArticles = newsArticles.Where(n => n.NewsStatus == 1).ToList();
+                // Chỉ lấy news có status = 1 (Published/Active) và IsActive = true
+                var activeNewsArticles = newsArticles.Where(n => n.NewsStatus == 1 && n.IsActive).ToList();
                 var newsArticleResponses = activeNewsArticles.Select(n => new NewsArticleResponse
                 {
                     NewsArticleId = n.NewsArticleId,
@@ -38,7 +38,7 @@ namespace Service.Services
                     UpdatedById = n.UpdatedById,
                     UpdatedByName = n.UpdatedBy?.AccountName,
                     ModifiedDate = n.ModifiedDate,
-                    Tags = n.Tags?.Select(t => new TagInfo
+                    Tags = n.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
                     {
                         TagId = t.TagId,
                         TagName = t.TagName
@@ -58,7 +58,7 @@ namespace Service.Services
             try
             {
                 var newsArticle = await _uow.NewsArticleRepo.GetNewsArticleWithDetailsAsync(newsArticleId);
-                if (newsArticle == null)
+                if (newsArticle == null || !newsArticle.IsActive)
                 {
                     return APIResponse<NewsArticleResponse>.Fail("News article not found", "404");
                 }
@@ -79,7 +79,7 @@ namespace Service.Services
                     UpdatedById = newsArticle.UpdatedById,
                     UpdatedByName = newsArticle.UpdatedBy?.AccountName,
                     ModifiedDate = newsArticle.ModifiedDate,
-                    Tags = newsArticle.Tags?.Select(t => new TagInfo
+                    Tags = newsArticle.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
                     {
                         TagId = t.TagId,
                         TagName = t.TagName
@@ -124,11 +124,12 @@ namespace Service.Services
                     CreatedDate = DateTime.Now
                 };
 
-                // Thêm tags nếu có
+                // Thêm tags nếu có (chỉ lấy tags còn active)
                 if (request.TagIds != null && request.TagIds.Any())
                 {
                     var tags = await _uow.TagRepo.GetTagsByIdsAsync(request.TagIds);
-                    newNewsArticle.Tags = tags;
+                    // Filter chỉ lấy tags còn active
+                    newNewsArticle.Tags = tags.Where(t => t.IsActive).ToList();
                 }
 
                 await _uow.NewsArticleRepo.CreateAsync(newNewsArticle);
@@ -149,7 +150,7 @@ namespace Service.Services
                     NewsStatus = createdArticle.NewsStatus,
                     CreatedById = createdArticle.CreatedById,
                     CreatedByName = createdArticle.CreatedBy?.AccountName ?? string.Empty,
-                    Tags = createdArticle.Tags?.Select(t => new TagInfo
+                    Tags = createdArticle.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
                     {
                         TagId = t.TagId,
                         TagName = t.TagName
@@ -222,11 +223,13 @@ namespace Service.Services
                     Console.WriteLine($"[Service] Removed tag: {tag.TagId} - {tag.TagName}");
                 }
 
-                // Thêm tags mới
+                // Thêm tags mới (chỉ lấy tags còn active)
                 if (tagIdsToAdd.Any())
                 {
                     var tagsToAdd = await _uow.TagRepo.GetTagsByIdsAsync(tagIdsToAdd);
-                    foreach (var tag in tagsToAdd)
+                    // Filter chỉ lấy tags còn active
+                    var activeTags = tagsToAdd.Where(t => t.IsActive).ToList();
+                    foreach (var tag in activeTags)
                     {
                         newsArticle.Tags?.Add(tag);
                         Console.WriteLine($"[Service] Added tag: {tag.TagId} - {tag.TagName}");
@@ -254,7 +257,7 @@ namespace Service.Services
                     UpdatedById = updatedArticle.UpdatedById,
                     UpdatedByName = updatedArticle.UpdatedBy?.AccountName,
                     ModifiedDate = updatedArticle.ModifiedDate,
-                    Tags = updatedArticle.Tags?.Select(t => new TagInfo
+                    Tags = updatedArticle.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
                     {
                         TagId = t.TagId,
                         TagName = t.TagName
@@ -274,7 +277,8 @@ namespace Service.Services
             try
             {
                 var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
-                var userNews = newsArticles.Where(n => n.CreatedById == accountId).ToList();
+                // Chỉ lấy news của user và còn active
+                var userNews = newsArticles.Where(n => n.CreatedById == accountId && n.IsActive).ToList();
                 
                 var newsArticleResponses = userNews.Select(n => new NewsArticleResponse
                 {
@@ -292,7 +296,7 @@ namespace Service.Services
                     UpdatedById = n.UpdatedById,
                     UpdatedByName = n.UpdatedBy?.AccountName,
                     ModifiedDate = n.ModifiedDate,
-                    Tags = n.Tags?.Select(t => new TagInfo
+                    Tags = n.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
                     {
                         TagId = t.TagId,
                         TagName = t.TagName
@@ -312,7 +316,7 @@ namespace Service.Services
             try
             {
                 var newsArticle = await _uow.NewsArticleRepo.GetByIdAsync(newsArticleId);
-                if (newsArticle == null)
+                if (newsArticle == null || !newsArticle.IsActive)
                 {
                     return APIResponse<string>.Fail("News article not found", "404");
                 }
@@ -323,8 +327,11 @@ namespace Service.Services
                     return APIResponse<string>.Fail("You don't have permission to delete this news article", "403");
                 }
 
-                var result = await _uow.NewsArticleRepo.RemoveAsync(newsArticle);
-                if (!result)
+                // Soft delete: chuyển IsActive thành false
+                newsArticle.IsActive = false;
+                var result = await _uow.NewsArticleRepo.UpdateAsync(newsArticle);
+                
+                if (result <= 0)
                 {
                     return APIResponse<string>.Fail("Failed to delete news article", "500");
                 }

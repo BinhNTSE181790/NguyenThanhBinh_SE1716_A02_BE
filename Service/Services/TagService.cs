@@ -18,7 +18,9 @@ namespace Service.Services
         {
             try
             {
-                var tags = await _uow.TagRepo.GetAllAsync();
+                var allTags = await _uow.TagRepo.GetAllAsync();
+                // Chỉ lấy các tag còn active
+                var tags = allTags.Where(t => t.IsActive).ToList();
                 var tagInfos = tags.Select(t => new TagInfo
                 {
                     TagId = t.TagId,

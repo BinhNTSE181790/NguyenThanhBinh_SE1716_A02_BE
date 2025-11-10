@@ -62,6 +62,7 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.NewsSource).HasMaxLength(200);
             entity.Property(e => e.NewsTitle).HasMaxLength(200);
             entity.Property(e => e.UpdatedById).HasColumnName("UpdatedByID");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Category).WithMany(p => p.NewsArticles)
                 .HasForeignKey(d => d.CategoryId)
@@ -125,6 +126,7 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.TagId).HasColumnName("TagID");
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.TagName).HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         OnModelCreatingPartial(modelBuilder);
