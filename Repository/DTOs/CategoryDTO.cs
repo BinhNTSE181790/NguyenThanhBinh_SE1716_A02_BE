@@ -25,7 +25,7 @@ namespace Repository.DTOs
             public string CategoryName { get; set; } = string.Empty;
             public string? CategoryDescription { get; set; }
             public int? ParentCategoryId { get; set; }
-            public bool IsActive { get; set; }
+            // IsActive không được update qua API Update, chỉ có thể thay đổi qua Delete (soft delete)
         }
     }
 }

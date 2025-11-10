@@ -138,7 +138,7 @@ namespace Service.Services
                 category.CategoryName = request.CategoryName;
                 category.CategoryDesciption = request.CategoryDescription;
                 category.ParentCategoryId = request.ParentCategoryId;
-                category.IsActive = request.IsActive;
+                // IsActive không được update qua API Update, chỉ update qua Delete (soft delete)
 
                 await _uow.CategoryRepo.UpdateAsync(category);
 
