@@ -33,6 +33,21 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("search")]
+        public async Task<ActionResult<APIResponse<List<NewsArticleResponse>>>> SearchNewsArticles([FromQuery] string searchTerm)
+        {
+            try
+            {
+                var result = await _newsArticleService.SearchNewsArticlesAsync(searchTerm ?? "");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIResponse<List<NewsArticleResponse>>.Fail($"System error: {ex.Message}", "500"));
+            }
+        }
+
         [HttpGet("my-news")]
         public async Task<ActionResult<APIResponse<List<NewsArticleResponse>>>> GetMyNewsArticles()
         {

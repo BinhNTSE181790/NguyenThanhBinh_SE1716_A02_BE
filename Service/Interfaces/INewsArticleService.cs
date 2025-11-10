@@ -6,6 +6,7 @@ namespace Service.Interfaces
     public interface INewsArticleService
     {
         Task<APIResponse<List<NewsArticleResponse>>> GetAllNewsArticlesAsync();
+        Task<APIResponse<List<NewsArticleResponse>>> SearchNewsArticlesAsync(string searchTerm);
         Task<APIResponse<List<NewsArticleResponse>>> GetNewsByAccountIdAsync(int accountId);
         Task<APIResponse<NewsArticleResponse>> GetNewsArticleDetailAsync(int newsArticleId);
         Task<APIResponse<NewsArticleResponse>> CreateNewsArticleAsync(int createdById, CreateNewsArticleRequest request);

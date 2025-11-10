@@ -32,6 +32,19 @@ namespace Repository.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<NewsArticle>> SearchNewsArticlesByTitleAsync(string searchTerm)
+        {
+            return await _dbSet
+                .Include(n => n.Category)
+                .Include(n => n.CreatedBy)
+                .Include(n => n.UpdatedBy)
+                .Include(n => n.Tags)
+                .Where(n => n.NewsTitle.Contains(searchTerm))
+                .OrderByDescending(n => n.NewsArticleId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<int> CountNewsByCreatorIdAsync(int creatorId)
         {
             return await _dbSet

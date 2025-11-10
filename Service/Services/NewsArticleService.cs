@@ -53,6 +53,49 @@ namespace Service.Services
             }
         }
 
+        public async Task<APIResponse<List<NewsArticleResponse>>> SearchNewsArticlesAsync(string searchTerm)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    return await GetAllNewsArticlesAsync();
+                }
+
+                var newsArticles = await _uow.NewsArticleRepo.SearchNewsArticlesByTitleAsync(searchTerm);
+                // Chỉ lấy news có status = 1 (Published/Active) và IsActive = true
+                var activeNewsArticles = newsArticles.Where(n => n.NewsStatus == 1 && n.IsActive).ToList();
+                var newsArticleResponses = activeNewsArticles.Select(n => new NewsArticleResponse
+                {
+                    NewsArticleId = n.NewsArticleId,
+                    NewsTitle = n.NewsTitle,
+                    Headline = n.Headline,
+                    CreatedDate = n.CreatedDate,
+                    NewsContent = n.NewsContent,
+                    NewsSource = n.NewsSource,
+                    CategoryId = n.CategoryId,
+                    CategoryName = n.Category?.CategoryName ?? string.Empty,
+                    NewsStatus = n.NewsStatus,
+                    CreatedById = n.CreatedById,
+                    CreatedByName = n.CreatedBy?.AccountName ?? string.Empty,
+                    UpdatedById = n.UpdatedById,
+                    UpdatedByName = n.UpdatedBy?.AccountName,
+                    ModifiedDate = n.ModifiedDate,
+                    Tags = n.Tags?.Where(t => t.IsActive).Select(t => new TagInfo
+                    {
+                        TagId = t.TagId,
+                        TagName = t.TagName
+                    }).ToList()
+                }).ToList();
+
+                return APIResponse<List<NewsArticleResponse>>.Ok(newsArticleResponses, "News articles retrieved successfully", "200");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<List<NewsArticleResponse>>.Fail($"Error searching news articles: {ex.Message}", "500");
+            }
+        }
+
         public async Task<APIResponse<NewsArticleResponse>> GetNewsArticleDetailAsync(int newsArticleId)
         {
             try

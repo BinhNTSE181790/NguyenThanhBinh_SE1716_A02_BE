@@ -6,6 +6,7 @@ namespace Repository.Interfaces
     {
         Task<NewsArticle?> GetNewsArticleWithDetailsAsync(int newsArticleId);
         Task<List<NewsArticle>> GetAllNewsArticlesWithDetailsAsync();
+        Task<List<NewsArticle>> SearchNewsArticlesByTitleAsync(string searchTerm);
         Task<int> CountNewsByCreatorIdAsync(int creatorId);
     }
 }
