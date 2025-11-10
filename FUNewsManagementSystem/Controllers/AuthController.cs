@@ -55,7 +55,7 @@ namespace FUNewsManagementSystem.Controllers
 
         [Authorize]
         [HttpGet("profile")]
-        public async Task<ActionResult<APIResponse<ProfileResponse>>> GetProfile()
+        public async Task<ActionResult<APIResponse<AccountDTO.ProfileResponse>>> GetProfile()
         {
             try
             {
@@ -63,7 +63,7 @@ namespace FUNewsManagementSystem.Controllers
                 var accountIdClaim = User.FindFirst("AccountId")?.Value;
                 if (string.IsNullOrEmpty(accountIdClaim))
                 {
-                    return Unauthorized(APIResponse<ProfileResponse>.Fail("Invalid token", "401"));
+                    return Unauthorized(APIResponse<AccountDTO.ProfileResponse>.Fail("Invalid token", "401"));
                 }
 
                 int accountId = int.Parse(accountIdClaim);
@@ -71,14 +71,15 @@ namespace FUNewsManagementSystem.Controllers
                 
                 if (account == null || account.Data == null)
                 {
-                    return NotFound(APIResponse<ProfileResponse>.Fail("Account not found", "404"));
+                    return NotFound(APIResponse<AccountDTO.ProfileResponse>.Fail("Account not found", "404"));
                 }
 
-                return Ok(APIResponse<ProfileResponse>.Ok(account.Data, "Profile retrieved successfully"));
+                // Trả về AccountResponse trực tiếp, nó đã đúng structure
+                return Ok(APIResponse<AccountDTO.ProfileResponse>.Ok(account.Data, "Profile retrieved successfully"));
             }
             catch (Exception)
             {
-                return StatusCode(500, APIResponse<ProfileResponse>.Fail("System fail", "500"));
+                return StatusCode(500, APIResponse<AccountDTO.ProfileResponse>.Fail("System fail", "500"));
             }
         }
     }

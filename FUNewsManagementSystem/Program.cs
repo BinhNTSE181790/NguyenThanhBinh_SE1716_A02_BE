@@ -75,6 +75,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
+builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IJWTService, JWTService>();
 
 // JWT Authentication

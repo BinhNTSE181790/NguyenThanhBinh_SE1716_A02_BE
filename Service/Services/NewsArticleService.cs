@@ -20,7 +20,9 @@ namespace Service.Services
             try
             {
                 var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
-                var newsArticleResponses = newsArticles.Select(n => new NewsArticleResponse
+                // Chỉ lấy news có status = 1 (Published/Active)
+                var activeNewsArticles = newsArticles.Where(n => n.NewsStatus == 1).ToList();
+                var newsArticleResponses = activeNewsArticles.Select(n => new NewsArticleResponse
                 {
                     NewsArticleId = n.NewsArticleId,
                     NewsTitle = n.NewsTitle,
@@ -195,15 +197,40 @@ namespace Service.Services
                 newsArticle.UpdatedById = updatedById;
                 newsArticle.ModifiedDate = DateTime.Now;
 
-                // Cập nhật tags
-                if (request.TagIds != null)
+                // Log tags trước khi update
+                Console.WriteLine($"[Service] Current tags count before update: {newsArticle.Tags?.Count ?? 0}");
+                Console.WriteLine($"[Service] Request tagIds: {string.Join(", ", request.TagIds ?? new List<int>())}");
+
+                // KHÔNG gọi UpdateAsync qua repo mà tự xử lý tags và save
+                // Lấy danh sách tag IDs hiện tại và mới
+                var currentTagIds = newsArticle.Tags?.Select(t => t.TagId).ToList() ?? new List<int>();
+                var newTagIds = request.TagIds ?? new List<int>();
+
+                // Tags cần xóa (có trong current nhưng không có trong new)
+                var tagsToRemove = newsArticle.Tags?.Where(t => !newTagIds.Contains(t.TagId)).ToList() ?? new List<Tag>();
+                
+                // Tags cần thêm (có trong new nhưng không có trong current)
+                var tagIdsToAdd = newTagIds.Where(id => !currentTagIds.Contains(id)).ToList();
+
+                Console.WriteLine($"[Service] Tags to remove: {tagsToRemove.Count}");
+                Console.WriteLine($"[Service] Tag IDs to add: {tagIdsToAdd.Count}");
+
+                // Xóa tags không còn cần
+                foreach (var tag in tagsToRemove)
                 {
-                    var tags = await _uow.TagRepo.GetTagsByIdsAsync(request.TagIds);
-                    newsArticle.Tags = tags;
+                    newsArticle.Tags?.Remove(tag);
+                    Console.WriteLine($"[Service] Removed tag: {tag.TagId} - {tag.TagName}");
                 }
-                else
+
+                // Thêm tags mới
+                if (tagIdsToAdd.Any())
                 {
-                    newsArticle.Tags?.Clear();
+                    var tagsToAdd = await _uow.TagRepo.GetTagsByIdsAsync(tagIdsToAdd);
+                    foreach (var tag in tagsToAdd)
+                    {
+                        newsArticle.Tags?.Add(tag);
+                        Console.WriteLine($"[Service] Added tag: {tag.TagId} - {tag.TagName}");
+                    }
                 }
 
                 await _uow.NewsArticleRepo.UpdateAsync(newsArticle);
@@ -242,7 +269,45 @@ namespace Service.Services
             }
         }
 
-        public async Task<APIResponse<string>> DeleteNewsArticleAsync(int newsArticleId)
+        public async Task<APIResponse<List<NewsArticleResponse>>> GetNewsByAccountIdAsync(int accountId)
+        {
+            try
+            {
+                var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
+                var userNews = newsArticles.Where(n => n.CreatedById == accountId).ToList();
+                
+                var newsArticleResponses = userNews.Select(n => new NewsArticleResponse
+                {
+                    NewsArticleId = n.NewsArticleId,
+                    NewsTitle = n.NewsTitle,
+                    Headline = n.Headline,
+                    CreatedDate = n.CreatedDate,
+                    NewsContent = n.NewsContent,
+                    NewsSource = n.NewsSource,
+                    CategoryId = n.CategoryId,
+                    CategoryName = n.Category?.CategoryName ?? string.Empty,
+                    NewsStatus = n.NewsStatus,
+                    CreatedById = n.CreatedById,
+                    CreatedByName = n.CreatedBy?.AccountName ?? string.Empty,
+                    UpdatedById = n.UpdatedById,
+                    UpdatedByName = n.UpdatedBy?.AccountName,
+                    ModifiedDate = n.ModifiedDate,
+                    Tags = n.Tags?.Select(t => new TagInfo
+                    {
+                        TagId = t.TagId,
+                        TagName = t.TagName
+                    }).ToList()
+                }).ToList();
+
+                return APIResponse<List<NewsArticleResponse>>.Ok(newsArticleResponses, "User news articles retrieved successfully", "200");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<List<NewsArticleResponse>>.Fail($"Error retrieving user news articles: {ex.Message}", "500");
+            }
+        }
+
+        public async Task<APIResponse<string>> DeleteNewsArticleAsync(int newsArticleId, int accountId)
         {
             try
             {
@@ -250,6 +315,12 @@ namespace Service.Services
                 if (newsArticle == null)
                 {
                     return APIResponse<string>.Fail("News article not found", "404");
+                }
+
+                // Check if the user is the creator of the news article
+                if (newsArticle.CreatedById != accountId)
+                {
+                    return APIResponse<string>.Fail("You don't have permission to delete this news article", "403");
                 }
 
                 var result = await _uow.NewsArticleRepo.RemoveAsync(newsArticle);

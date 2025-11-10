@@ -18,6 +18,7 @@ namespace FUNewsManagementSystem.Controllers
             _categoryService = categoryService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<APIResponse<List<CategoryResponse>>>> GetAllCategories()
         {
@@ -32,6 +33,7 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<APIResponse<CategoryResponse>>> GetCategoryDetail(int id)
         {
@@ -50,7 +52,7 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
-        [Authorize(Roles = "3")]
+        [Authorize(Roles = "1")] // Staff only
         [HttpPost]
         public async Task<ActionResult<APIResponse<CategoryResponse>>> CreateCategory([FromBody] CreateCategoryRequest request)
         {
@@ -69,7 +71,7 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
-        [Authorize(Roles = "3")]
+        [Authorize(Roles = "1")] // Staff only
         [HttpPut("{id}")]
         public async Task<ActionResult<APIResponse<CategoryResponse>>> UpdateCategory(int id, [FromBody] UpdateCategoryRequest request)
         {
@@ -92,7 +94,7 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
-        [Authorize(Roles = "3")]
+        [Authorize(Roles = "1")] // Staff only
         [HttpDelete("{id}")]
         public async Task<ActionResult<APIResponse<string>>> DeleteCategory(int id)
         {

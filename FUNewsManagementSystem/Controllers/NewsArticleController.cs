@@ -18,6 +18,7 @@ namespace FUNewsManagementSystem.Controllers
             _newsArticleService = newsArticleService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<APIResponse<List<NewsArticleResponse>>>> GetAllNewsArticles()
         {
@@ -32,6 +33,29 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
+        [HttpGet("my-news")]
+        public async Task<ActionResult<APIResponse<List<NewsArticleResponse>>>> GetMyNewsArticles()
+        {
+            try
+            {
+                // Lấy AccountId từ token
+                var accountIdClaim = User.FindFirst("AccountId")?.Value;
+                if (string.IsNullOrEmpty(accountIdClaim))
+                {
+                    return Unauthorized(APIResponse<List<NewsArticleResponse>>.Fail("Invalid token", "401"));
+                }
+
+                int accountId = int.Parse(accountIdClaim);
+                var result = await _newsArticleService.GetNewsByAccountIdAsync(accountId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIResponse<List<NewsArticleResponse>>.Fail($"System error: {ex.Message}", "500"));
+            }
+        }
+
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<APIResponse<NewsArticleResponse>>> GetNewsArticleDetail(int id)
         {
@@ -55,6 +79,7 @@ namespace FUNewsManagementSystem.Controllers
         {
             try
             {
+                Console.WriteLine($"Received CreateNewsArticleRequest with {request.TagIds?.Count ?? 0} tags");
                 // Lấy AccountId từ token
                 var accountIdClaim = User.FindFirst("AccountId")?.Value;
                 if (string.IsNullOrEmpty(accountIdClaim))
@@ -83,6 +108,7 @@ namespace FUNewsManagementSystem.Controllers
         {
             try
             {
+                Console.WriteLine($"Received UpdateNewsArticleRequest with {request.TagIds?.Count ?? 0} tags");
                 // Lấy AccountId từ token
                 var accountIdClaim = User.FindFirst("AccountId")?.Value;
                 if (string.IsNullOrEmpty(accountIdClaim))
@@ -110,20 +136,28 @@ namespace FUNewsManagementSystem.Controllers
             }
         }
 
-        [Authorize(Roles = "3")]
+        [Authorize(Roles = "1,2")] // Staff or Lecturer
         [HttpDelete("{id}")]
         public async Task<ActionResult<APIResponse<string>>> DeleteNewsArticle(int id)
         {
             try
             {
-                var result = await _newsArticleService.DeleteNewsArticleAsync(id);
+                // Lấy AccountId từ token
+                var accountIdClaim = User.FindFirst("AccountId")?.Value;
+                if (string.IsNullOrEmpty(accountIdClaim))
+                {
+                    return Unauthorized(APIResponse<string>.Fail("Invalid token", "401"));
+                }
+
+                int accountId = int.Parse(accountIdClaim);
+                var result = await _newsArticleService.DeleteNewsArticleAsync(id, accountId);
                 if (result.StatusCode == "404")
                 {
                     return NotFound(result);
                 }
-                if (result.StatusCode == "400")
+                if (result.StatusCode == "403")
                 {
-                    return BadRequest(result);
+                    return StatusCode(403, result);
                 }
                 return Ok(result);
             }
