@@ -180,6 +180,12 @@ namespace Service.Services
                 account.AccountName = request.AccountName;
                 account.AccountEmail = request.AccountEmail;
                 account.AccountRole = request.AccountRole;
+                
+                // Update password if provided
+                if (!string.IsNullOrEmpty(request.AccountPassword))
+                {
+                    account.AccountPassword = request.AccountPassword;
+                }
 
                 await uow.AccountRepo.UpdateAsync(account);
 
