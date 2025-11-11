@@ -164,7 +164,8 @@ namespace Service.Services
                     CategoryId = request.CategoryId,
                     NewsStatus = request.NewsStatus,
                     CreatedById = createdById,
-                    CreatedDate = DateTime.Now
+                    CreatedDate = DateTime.Now,
+                    ModifiedDate = DateTime.Now
                 };
 
                 // Thêm tags nếu có (chỉ lấy tags còn active)
@@ -387,45 +388,63 @@ namespace Service.Services
             }
         }
 
-        public async Task<APIResponse<List<NewsStatisticsResponse>>> GetNewsStatisticsAsync(DateTime startDate, DateTime endDate)
+        public async Task<APIResponse<NewsStatisticsResponse>> GetNewsStatisticsAsync(DateTime startDate, DateTime endDate)
         {
             try
             {
                 var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
                 
-                // Filter by date range and IsActive
+                // Filter by CreatedDate range and IsActive
                 var filteredNews = newsArticles
-                    .Where(n => n.IsActive && n.CreatedDate.Date >= startDate.Date && n.CreatedDate.Date <= endDate.Date)
+                    .Where(n => n.IsActive 
+                        && n.CreatedDate.Date >= startDate.Date 
+                        && n.CreatedDate.Date <= endDate.Date)
                     .ToList();
 
-                // Group by date and calculate statistics
-                var statistics = filteredNews
+                // Overall statistics
+                var totalNews = filteredNews.Count;
+                var totalPublished = filteredNews.Count(n => n.NewsStatus == 1);
+                var totalDraft = filteredNews.Count(n => n.NewsStatus == 0);
+                var totalAuthors = filteredNews.Select(n => n.CreatedById).Distinct().Count();
+
+                // Top category
+                var topCategory = filteredNews
+                    .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
+                    .Select(g => new CategoryStatistics
+                    {
+                        CategoryId = g.Key.CategoryId,
+                        CategoryName = g.Key.CategoryName,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(cs => cs.Count)
+                    .FirstOrDefault();
+
+                // Daily breakdown - group by CreatedDate
+                var dailyBreakdown = filteredNews
                     .GroupBy(n => n.CreatedDate.Date)
-                    .Select(g => new NewsStatisticsResponse
+                    .Select(g => new DailyStatistics
                     {
                         Date = g.Key,
-                        TotalNews = g.Count(),
-                        PublishedNews = g.Count(n => n.NewsStatus == 1),
-                        DraftNews = g.Count(n => n.NewsStatus == 0),
-                        CategoryBreakdown = g
-                            .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
-                            .Select(cg => new CategoryStatistics
-                            {
-                                CategoryId = cg.Key.CategoryId,
-                                CategoryName = cg.Key.CategoryName,
-                                Count = cg.Count()
-                            })
-                            .OrderByDescending(cs => cs.Count)
-                            .ToList()
+                        TotalNews = g.Count()
                     })
-                    .OrderByDescending(s => s.Date)
+                    .OrderByDescending(d => d.Date)
                     .ToList();
 
-                return APIResponse<List<NewsStatisticsResponse>>.Ok(statistics, "Statistics retrieved successfully", "200");
+                var statistics = new NewsStatisticsResponse
+                {
+                    TotalNews = totalNews,
+                    TotalPublished = totalPublished,
+                    TotalDraft = totalDraft,
+                    TotalAuthors = totalAuthors,
+                    TopCategory = topCategory,
+                    DailyBreakdown = dailyBreakdown
+                };
+
+                return APIResponse<NewsStatisticsResponse>.Ok(statistics, "Statistics retrieved successfully", "200");
             }
             catch (Exception ex)
             {
-                return APIResponse<List<NewsStatisticsResponse>>.Fail($"Error retrieving statistics: {ex.Message}", "500");
+                return APIResponse<NewsStatisticsResponse>.Fail($"Error retrieving statistics: {ex.Message}", "500");
             }
         }
     }

@@ -12,6 +12,6 @@ namespace Service.Interfaces
         Task<APIResponse<NewsArticleResponse>> CreateNewsArticleAsync(int createdById, CreateNewsArticleRequest request);
         Task<APIResponse<NewsArticleResponse>> UpdateNewsArticleAsync(int newsArticleId, int updatedById, UpdateNewsArticleRequest request);
         Task<APIResponse<string>> DeleteNewsArticleAsync(int newsArticleId, int accountId);
-        Task<APIResponse<List<NewsStatisticsResponse>>> GetNewsStatisticsAsync(DateTime startDate, DateTime endDate);
+        Task<APIResponse<NewsStatisticsResponse>> GetNewsStatisticsAsync(DateTime startDate, DateTime endDate);
     }
 }

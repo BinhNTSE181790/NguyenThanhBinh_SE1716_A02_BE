@@ -57,11 +57,21 @@ namespace Repository.DTOs
 
         public class NewsStatisticsResponse
         {
+            // Overall statistics
+            public int TotalNews { get; set; }
+            public int TotalPublished { get; set; }
+            public int TotalDraft { get; set; }
+            public int TotalAuthors { get; set; }
+            public CategoryStatistics? TopCategory { get; set; }
+            
+            // Daily breakdown
+            public List<DailyStatistics> DailyBreakdown { get; set; } = new();
+        }
+
+        public class DailyStatistics
+        {
             public DateTime Date { get; set; }
             public int TotalNews { get; set; }
-            public int PublishedNews { get; set; }
-            public int DraftNews { get; set; }
-            public List<CategoryStatistics> CategoryBreakdown { get; set; } = new();
         }
 
         public class CategoryStatistics

@@ -184,7 +184,7 @@ namespace FUNewsManagementSystem.Controllers
 
         [Authorize(Roles = "0")] // Admin only
         [HttpPost("statistics")]
-        public async Task<ActionResult<APIResponse<List<NewsStatisticsResponse>>>> GetNewsStatistics([FromBody] NewsStatisticsRequest request)
+        public async Task<ActionResult<APIResponse<NewsStatisticsResponse>>> GetNewsStatistics([FromBody] NewsStatisticsRequest request)
         {
             try
             {
@@ -193,7 +193,7 @@ namespace FUNewsManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, APIResponse<List<NewsStatisticsResponse>>.Fail($"System error: {ex.Message}", "500"));
+                return StatusCode(500, APIResponse<NewsStatisticsResponse>.Fail($"System error: {ex.Message}", "500"));
             }
         }
     }
