@@ -55,6 +55,16 @@ namespace Repository.DTOs
             public DateTime EndDate { get; set; }
         }
 
+        // Separate DTOs for optimized APIs
+        public class StatisticsSummary
+        {
+            public int TotalNews { get; set; }
+            public int TotalPublished { get; set; }
+            public int TotalDraft { get; set; }
+            public int TotalAuthors { get; set; }
+            public CategoryStatistics? TopCategory { get; set; }
+        }
+
         public class NewsStatisticsResponse
         {
             // Overall statistics

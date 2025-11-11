@@ -457,5 +457,97 @@ namespace Service.Services
                 return APIResponse<NewsStatisticsResponse>.Fail($"Error retrieving statistics: {ex.Message}", "500");
             }
         }
+
+        // Optimized API: Get only summary statistics (lighter)
+        public async Task<APIResponse<StatisticsSummary>> GetStatisticsSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
+                
+                // Filter by CreatedDate range and IsActive
+                var filteredNews = newsArticles
+                    .Where(n => n.IsActive 
+                        && n.CreatedDate.Date >= startDate.Date 
+                        && n.CreatedDate.Date <= endDate.Date)
+                    .ToList();
+
+                // Overall statistics only
+                var totalNews = filteredNews.Count;
+                var totalPublished = filteredNews.Count(n => n.NewsStatus == 1);
+                var totalDraft = filteredNews.Count(n => n.NewsStatus == 0);
+                var totalAuthors = filteredNews.Select(n => n.CreatedById).Distinct().Count();
+
+                // Top category
+                var topCategory = filteredNews
+                    .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
+                    .Select(g => new CategoryStatistics
+                    {
+                        CategoryId = g.Key.CategoryId,
+                        CategoryName = g.Key.CategoryName,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(cs => cs.Count)
+                    .FirstOrDefault();
+
+                var summary = new StatisticsSummary
+                {
+                    TotalNews = totalNews,
+                    TotalPublished = totalPublished,
+                    TotalDraft = totalDraft,
+                    TotalAuthors = totalAuthors,
+                    TopCategory = topCategory
+                };
+
+                return APIResponse<StatisticsSummary>.Ok(summary, "Summary statistics retrieved successfully", "200");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<StatisticsSummary>.Fail($"Error retrieving summary: {ex.Message}", "500");
+            }
+        }
+
+        // Optimized API: Get only daily breakdown (can be loaded separately)
+        public async Task<APIResponse<List<DailyStatistics>>> GetDailyBreakdownAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var newsArticles = await _uow.NewsArticleRepo.GetAllNewsArticlesWithDetailsAsync();
+                
+                // Filter by CreatedDate range and IsActive
+                var filteredNews = newsArticles
+                    .Where(n => n.IsActive 
+                        && n.CreatedDate.Date >= startDate.Date 
+                        && n.CreatedDate.Date <= endDate.Date)
+                    .ToList();
+
+                // Daily breakdown only
+                var dailyBreakdown = filteredNews
+                    .GroupBy(n => n.CreatedDate.Date)
+                    .Select(g => new DailyStatistics
+                    {
+                        Date = g.Key,
+                        TotalNews = g.Count(),
+                        CategoryBreakdown = g
+                            .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
+                            .Select(cg => new CategoryStatistics
+                            {
+                                CategoryId = cg.Key.CategoryId,
+                                CategoryName = cg.Key.CategoryName,
+                                Count = cg.Count()
+                            })
+                            .OrderByDescending(cs => cs.Count)
+                            .ToList()
+                    })
+                    .OrderByDescending(d => d.Date)
+                    .ToList();
+
+                return APIResponse<List<DailyStatistics>>.Ok(dailyBreakdown, "Daily breakdown retrieved successfully", "200");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<List<DailyStatistics>>.Fail($"Error retrieving daily breakdown: {ex.Message}", "500");
+            }
+        }
     }
 }

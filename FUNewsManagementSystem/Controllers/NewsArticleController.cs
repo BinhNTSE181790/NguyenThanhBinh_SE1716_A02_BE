@@ -196,5 +196,36 @@ namespace FUNewsManagementSystem.Controllers
                 return StatusCode(500, APIResponse<NewsStatisticsResponse>.Fail($"System error: {ex.Message}", "500"));
             }
         }
+
+        // Optimized endpoints for better performance
+        [Authorize(Roles = "0")] // Admin only
+        [HttpPost("statistics/summary")]
+        public async Task<ActionResult<APIResponse<StatisticsSummary>>> GetStatisticsSummary([FromBody] NewsStatisticsRequest request)
+        {
+            try
+            {
+                var result = await _newsArticleService.GetStatisticsSummaryAsync(request.StartDate, request.EndDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIResponse<StatisticsSummary>.Fail($"System error: {ex.Message}", "500"));
+            }
+        }
+
+        [Authorize(Roles = "0")] // Admin only
+        [HttpPost("statistics/daily-breakdown")]
+        public async Task<ActionResult<APIResponse<List<DailyStatistics>>>> GetDailyBreakdown([FromBody] NewsStatisticsRequest request)
+        {
+            try
+            {
+                var result = await _newsArticleService.GetDailyBreakdownAsync(request.StartDate, request.EndDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIResponse<List<DailyStatistics>>.Fail($"System error: {ex.Message}", "500"));
+            }
+        }
     }
 }
