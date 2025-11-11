@@ -72,6 +72,7 @@ namespace Repository.DTOs
         {
             public DateTime Date { get; set; }
             public int TotalNews { get; set; }
+            public List<CategoryStatistics> CategoryBreakdown { get; set; } = new();
         }
 
         public class CategoryStatistics

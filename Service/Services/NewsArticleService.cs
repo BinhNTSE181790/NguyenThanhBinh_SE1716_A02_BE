@@ -419,13 +419,23 @@ namespace Service.Services
                     .OrderByDescending(cs => cs.Count)
                     .FirstOrDefault();
 
-                // Daily breakdown - group by CreatedDate
+                // Daily breakdown - group by CreatedDate with category breakdown
                 var dailyBreakdown = filteredNews
                     .GroupBy(n => n.CreatedDate.Date)
                     .Select(g => new DailyStatistics
                     {
                         Date = g.Key,
-                        TotalNews = g.Count()
+                        TotalNews = g.Count(),
+                        CategoryBreakdown = g
+                            .GroupBy(n => new { n.CategoryId, n.Category!.CategoryName })
+                            .Select(cg => new CategoryStatistics
+                            {
+                                CategoryId = cg.Key.CategoryId,
+                                CategoryName = cg.Key.CategoryName,
+                                Count = cg.Count()
+                            })
+                            .OrderByDescending(cs => cs.Count)
+                            .ToList()
                     })
                     .OrderByDescending(d => d.Date)
                     .ToList();
