@@ -26,7 +26,7 @@ namespace Service.Services
                 {
                     CategoryId = c.CategoryId,
                     CategoryName = c.CategoryName,
-                    CategoryDescription = c.CategoryDesciption,
+                    CategoryDesciption = c.CategoryDesciption,
                     ParentCategoryId = c.ParentCategoryId,
                     ParentCategoryName = c.ParentCategory?.CategoryName,
                     IsActive = c.IsActive
@@ -54,7 +54,7 @@ namespace Service.Services
                 {
                     CategoryId = category.CategoryId,
                     CategoryName = category.CategoryName,
-                    CategoryDescription = category.CategoryDesciption,
+                    CategoryDesciption = category.CategoryDesciption,
                     ParentCategoryId = category.ParentCategoryId,
                     ParentCategoryName = category.ParentCategory?.CategoryName,
                     IsActive = category.IsActive
@@ -85,7 +85,7 @@ namespace Service.Services
                 var newCategory = new Category
                 {
                     CategoryName = request.CategoryName,
-                    CategoryDesciption = request.CategoryDescription,
+                    CategoryDesciption = request.CategoryDesciption,
                     ParentCategoryId = request.ParentCategoryId,
                     IsActive = request.IsActive
                 };
@@ -96,7 +96,7 @@ namespace Service.Services
                 {
                     CategoryId = newCategory.CategoryId,
                     CategoryName = newCategory.CategoryName,
-                    CategoryDescription = newCategory.CategoryDesciption,
+                    CategoryDesciption = newCategory.CategoryDesciption,
                     ParentCategoryId = newCategory.ParentCategoryId,
                     IsActive = newCategory.IsActive
                 };
@@ -136,19 +136,22 @@ namespace Service.Services
                 }
 
                 category.CategoryName = request.CategoryName;
-                category.CategoryDesciption = request.CategoryDescription;
+                category.CategoryDesciption = request.CategoryDesciption;
                 category.ParentCategoryId = request.ParentCategoryId;
                 // IsActive không được update qua API Update, chỉ update qua Delete (soft delete)
 
                 await _uow.CategoryRepo.UpdateAsync(category);
 
+                // Reload category from database to get updated values
+                var updatedCategory = await _uow.CategoryRepo.GetByIdAsync(categoryId);
+
                 var categoryResponse = new CategoryResponse
                 {
-                    CategoryId = category.CategoryId,
-                    CategoryName = category.CategoryName,
-                    CategoryDescription = category.CategoryDesciption,
-                    ParentCategoryId = category.ParentCategoryId,
-                    IsActive = category.IsActive
+                    CategoryId = updatedCategory!.CategoryId,
+                    CategoryName = updatedCategory.CategoryName,
+                    CategoryDesciption = updatedCategory.CategoryDesciption,
+                    ParentCategoryId = updatedCategory.ParentCategoryId,
+                    IsActive = updatedCategory.IsActive
                 };
 
                 return APIResponse<CategoryResponse>.Ok(categoryResponse, "Category updated successfully", "200");
