@@ -9,7 +9,7 @@ namespace Repository.DTOs
             public string? CategoryDesciption { get; set; }
             public int? ParentCategoryId { get; set; }
             public string? ParentCategoryName { get; set; }
-            public bool IsActive { get; set; }
+            public int Status { get; set; } // 1 = Active, 0 = Inactive
         }
 
         public class CreateCategoryRequest
@@ -17,7 +17,7 @@ namespace Repository.DTOs
             public string CategoryName { get; set; } = string.Empty;
             public string? CategoryDesciption { get; set; }
             public int? ParentCategoryId { get; set; }
-            public bool IsActive { get; set; } = true;
+            public int Status { get; set; } = 1; // Default Active
         }
 
         public class UpdateCategoryRequest
@@ -25,7 +25,7 @@ namespace Repository.DTOs
             public string CategoryName { get; set; } = string.Empty;
             public string? CategoryDesciption { get; set; }
             public int? ParentCategoryId { get; set; }
-            // IsActive không được update qua API Update, chỉ có thể thay đổi qua Delete (soft delete)
+            // Status không được update qua API Update, chỉ có thể thay đổi qua Delete
         }
     }
 }

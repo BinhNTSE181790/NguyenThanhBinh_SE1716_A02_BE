@@ -19,15 +19,13 @@ public partial class NewsArticle
 
     public int CategoryId { get; set; }
 
-    public int NewsStatus { get; set; }
+    public int NewsStatus { get; set; } // 1 = Active/Published, 0 = Inactive/Draft
 
     public int CreatedById { get; set; }
 
     public int? UpdatedById { get; set; }
 
     public DateTime? ModifiedDate { get; set; }
-
-    public bool IsActive { get; set; } = true;
 
     public virtual Category Category { get; set; } = null!;
 

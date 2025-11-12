@@ -50,7 +50,7 @@ namespace Service.Services
         public async Task<APIResponse<ProfileResponse>> GetAccountByIdAsync(int accountId)
         {
             var account = await uow.AccountRepo.GetByIdAsync(accountId);
-            if (account == null || !account.IsActive)
+            if (account == null)
             {
                 return APIResponse<ProfileResponse>.Fail("Account not found", "404");
             }
@@ -72,11 +72,10 @@ namespace Service.Services
             try
             {
                 var allAccounts = await uow.AccountRepo.GetAllAsync();
-                // Chỉ lấy các account còn active
-                var accounts = allAccounts.Where(a => a.IsActive).ToList();
+                // Lấy tất cả accounts (không lọc IsActive nữa)
                 var accountResponses = new List<AccountResponse>();
 
-                foreach (var account in accounts)
+                foreach (var account in allAccounts)
                 {
                     var newsCount = await uow.NewsArticleRepo.CountNewsByCreatorIdAsync(account.AccountId);
                     accountResponses.Add(new AccountResponse
@@ -102,7 +101,7 @@ namespace Service.Services
             try
             {
                 var account = await uow.AccountRepo.GetByIdAsync(accountId);
-                if (account == null || !account.IsActive)
+                if (account == null)
                 {
                     return APIResponse<AccountResponse>.Fail("Account not found", "404");
                 }
@@ -209,24 +208,17 @@ namespace Service.Services
         {
             try
             {
-                // Lấy account để soft delete
+                // Lấy account để hard delete
                 var account = await uow.AccountRepo.GetByIdAsync(accountId);
                 if (account == null)
                 {
                     return APIResponse<string>.Fail("Account not found", "404");
                 }
 
-                // Kiểm tra nếu account đã bị xóa (soft deleted)
-                if (!account.IsActive)
-                {
-                    return APIResponse<string>.Fail("Account is already deleted", "400");
-                }
-
-                // Soft delete: chuyển IsActive thành false
-                account.IsActive = false;
-                var result = await uow.AccountRepo.UpdateAsync(account);
+                // Hard delete - Account không có soft delete nữa
+                var result = await uow.AccountRepo.RemoveAsync(account);
                 
-                if (result <= 0)
+                if (!result)
                 {
                     return APIResponse<string>.Fail("Failed to delete account", "500");
                 }

@@ -36,7 +36,7 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryDesciption).HasMaxLength(500);
             entity.Property(e => e.CategoryName).HasMaxLength(100);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasDefaultValue(1); // 1 = Active, 0 = Inactive
             entity.Property(e => e.ParentCategoryId).HasColumnName("ParentCategoryID");
 
             entity.HasOne(d => d.ParentCategory).WithMany(p => p.InverseParentCategory)
@@ -62,7 +62,7 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.NewsSource).HasMaxLength(200);
             entity.Property(e => e.NewsTitle).HasMaxLength(200);
             entity.Property(e => e.UpdatedById).HasColumnName("UpdatedByID");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.NewsStatus).HasDefaultValue(0); // 0 = Draft, 1 = Published
 
             entity.HasOne(d => d.Category).WithMany(p => p.NewsArticles)
                 .HasForeignKey(d => d.CategoryId)
@@ -112,7 +112,6 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.AccountPassword)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Tag>(entity =>
@@ -126,7 +125,6 @@ public partial class FunewsManagementSystemDbContext : DbContext
             entity.Property(e => e.TagId).HasColumnName("TagID");
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.TagName).HasMaxLength(50);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         OnModelCreatingPartial(modelBuilder);

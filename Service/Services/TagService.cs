@@ -21,9 +21,8 @@ namespace Service.Services
             try
             {
                 var allTags = await _uow.TagRepo.GetAllAsync();
-                // Chỉ lấy các tag còn active
-                var tags = allTags.Where(t => t.IsActive).ToList();
-                var tagInfos = tags.Select(t => new TagInfo
+                // Lấy tất cả tags (không có IsActive nữa)
+                var tagInfos = allTags.Select(t => new TagInfo
                 {
                     TagId = t.TagId,
                     TagName = t.TagName
@@ -46,8 +45,7 @@ namespace Service.Services
                 {
                     TagId = t.TagId,
                     TagName = t.TagName,
-                    Note = t.Note,
-                    IsActive = t.IsActive
+                    Note = t.Note
                 }).ToList();
 
                 return APIResponse<List<TagResponse>>.Ok(tagResponses, "Tags retrieved successfully", "200");
@@ -72,8 +70,7 @@ namespace Service.Services
                 {
                     TagId = tag.TagId,
                     TagName = tag.TagName,
-                    Note = tag.Note,
-                    IsActive = tag.IsActive
+                    Note = tag.Note
                 };
 
                 return APIResponse<TagResponse>.Ok(tagResponse, "Tag retrieved successfully", "200");
@@ -91,8 +88,7 @@ namespace Service.Services
                 var newTag = new Tag
                 {
                     TagName = request.TagName,
-                    Note = request.Note,
-                    IsActive = true
+                    Note = request.Note
                 };
 
                 await _uow.TagRepo.CreateAsync(newTag);
@@ -101,8 +97,7 @@ namespace Service.Services
                 {
                     TagId = newTag.TagId,
                     TagName = newTag.TagName,
-                    Note = newTag.Note,
-                    IsActive = newTag.IsActive
+                    Note = newTag.Note
                 };
 
                 return APIResponse<TagResponse>.Ok(tagResponse, "Tag created successfully", "201");
@@ -132,8 +127,7 @@ namespace Service.Services
                 {
                     TagId = tag.TagId,
                     TagName = tag.TagName,
-                    Note = tag.Note,
-                    IsActive = tag.IsActive
+                    Note = tag.Note
                 };
 
                 return APIResponse<TagResponse>.Ok(tagResponse, "Tag updated successfully", "200");
@@ -154,9 +148,13 @@ namespace Service.Services
                     return APIResponse<string>.Fail("Tag not found", "404");
                 }
 
-                // Soft delete
-                tag.IsActive = false;
-                await _uow.TagRepo.UpdateAsync(tag);
+                // Hard delete - Tag không có soft delete nữa
+                var result = await _uow.TagRepo.RemoveAsync(tag);
+                
+                if (!result)
+                {
+                    return APIResponse<string>.Fail("Failed to delete tag", "500");
+                }
 
                 return APIResponse<string>.Ok("Tag deleted successfully", "Tag deleted successfully", "200");
             }

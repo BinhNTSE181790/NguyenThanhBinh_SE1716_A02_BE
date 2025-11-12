@@ -13,7 +13,7 @@ public partial class Category
 
     public int? ParentCategoryId { get; set; }
 
-    public bool IsActive { get; set; }
+    public int Status { get; set; } = 1; // 1 = Active, 0 = Inactive
 
     public virtual ICollection<Category> InverseParentCategory { get; set; } = new List<Category>();
 

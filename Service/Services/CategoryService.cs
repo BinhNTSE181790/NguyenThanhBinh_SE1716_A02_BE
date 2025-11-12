@@ -20,8 +20,8 @@ namespace Service.Services
             try
             {
                 var allCategories = await _uow.CategoryRepo.GetAllAsync();
-                // Chỉ lấy các category còn active
-                var categories = allCategories.Where(c => c.IsActive).ToList();
+                // Chỉ lấy các category còn active (Status = 1)
+                var categories = allCategories.Where(c => c.Status == 1).ToList();
                 var categoryResponses = categories.Select(c => new CategoryResponse
                 {
                     CategoryId = c.CategoryId,
@@ -29,7 +29,7 @@ namespace Service.Services
                     CategoryDesciption = c.CategoryDesciption,
                     ParentCategoryId = c.ParentCategoryId,
                     ParentCategoryName = c.ParentCategory?.CategoryName,
-                    IsActive = c.IsActive
+                    Status = c.Status
                 }).ToList();
 
                 return APIResponse<List<CategoryResponse>>.Ok(categoryResponses, "Categories retrieved successfully", "200");
@@ -45,7 +45,7 @@ namespace Service.Services
             try
             {
                 var category = await _uow.CategoryRepo.GetCategoryWithParentAsync(categoryId);
-                if (category == null || !category.IsActive)
+                if (category == null || category.Status != 1)
                 {
                     return APIResponse<CategoryResponse>.Fail("Category not found", "404");
                 }
@@ -57,7 +57,7 @@ namespace Service.Services
                     CategoryDesciption = category.CategoryDesciption,
                     ParentCategoryId = category.ParentCategoryId,
                     ParentCategoryName = category.ParentCategory?.CategoryName,
-                    IsActive = category.IsActive
+                    Status = category.Status
                 };
 
                 return APIResponse<CategoryResponse>.Ok(categoryResponse, "Category retrieved successfully", "200");
@@ -87,7 +87,7 @@ namespace Service.Services
                     CategoryName = request.CategoryName,
                     CategoryDesciption = request.CategoryDesciption,
                     ParentCategoryId = request.ParentCategoryId,
-                    IsActive = request.IsActive
+                    Status = request.Status
                 };
 
                 await _uow.CategoryRepo.CreateAsync(newCategory);
@@ -98,7 +98,7 @@ namespace Service.Services
                     CategoryName = newCategory.CategoryName,
                     CategoryDesciption = newCategory.CategoryDesciption,
                     ParentCategoryId = newCategory.ParentCategoryId,
-                    IsActive = newCategory.IsActive
+                    Status = newCategory.Status
                 };
 
                 return APIResponse<CategoryResponse>.Ok(categoryResponse, "Category created successfully", "201");
@@ -138,7 +138,7 @@ namespace Service.Services
                 category.CategoryName = request.CategoryName;
                 category.CategoryDesciption = request.CategoryDesciption;
                 category.ParentCategoryId = request.ParentCategoryId;
-                // IsActive không được update qua API Update, chỉ update qua Delete (soft delete)
+                // Status không được update qua API Update, chỉ update qua Delete (soft delete)
 
                 await _uow.CategoryRepo.UpdateAsync(category);
 
@@ -151,7 +151,7 @@ namespace Service.Services
                     CategoryName = updatedCategory.CategoryName,
                     CategoryDesciption = updatedCategory.CategoryDesciption,
                     ParentCategoryId = updatedCategory.ParentCategoryId,
-                    IsActive = updatedCategory.IsActive
+                    Status = updatedCategory.Status
                 };
 
                 return APIResponse<CategoryResponse>.Ok(categoryResponse, "Category updated successfully", "200");
@@ -167,13 +167,13 @@ namespace Service.Services
             try
             {
                 var category = await _uow.CategoryRepo.GetByIdAsync(categoryId);
-                if (category == null || !category.IsActive)
+                if (category == null || category.Status != 1)
                 {
                     return APIResponse<string>.Fail("Category not found", "404");
                 }
 
-                // Soft delete: chuyển IsActive thành false
-                category.IsActive = false;
+                // Soft delete: chuyển Status thành 0 (Inactive)
+                category.Status = 0;
                 var result = await _uow.CategoryRepo.UpdateAsync(category);
                 
                 if (result <= 0)

@@ -11,16 +11,15 @@ namespace Repository.Repositories
         }
         public async Task<SystemAccount> GetAccountByEmailAsync(string email, string password)
         {
-            SystemAccount account = await _dbSet.
-                Where(a => a.AccountEmail == email && a.AccountPassword == password && a.IsActive)
+            SystemAccount account = await _dbSet
+                .Where(a => a.AccountEmail == email && a.AccountPassword == password)
                 .Select(a => new SystemAccount
                 {
                     AccountId = a.AccountId,
                     AccountName = a.AccountName,
                     AccountEmail = a.AccountEmail,
                     AccountRole = a.AccountRole,
-                    AccountPassword = a.AccountPassword,
-                    IsActive = a.IsActive
+                    AccountPassword = a.AccountPassword
                 })
                 .FirstOrDefaultAsync();
 
